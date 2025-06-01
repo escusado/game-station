@@ -10,12 +10,13 @@ import { v4 as uuidv4 } from "uuid";
 import PlayerStage from "./player-stage";
 import { useParams } from "next/navigation";
 import StationStage from "./station-stage";
+import { FROG_GAME_ROOM_NAME } from "@/app/three/Game";
 
 export default function Page() {
   // TODO: get user input for room and name
   const { userType } = useParams();
   const [token, setToken] = useState("");
-  const room = "game-room";
+  const room = FROG_GAME_ROOM_NAME;
   const name = `${userType}-user-${uuidv4()}`;
   const [roomInstance] = useState(
     () =>

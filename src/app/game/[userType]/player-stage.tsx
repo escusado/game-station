@@ -1,4 +1,4 @@
-import { ConnectionState, RoomContext } from "@livekit/components-react";
+import { RoomContext } from "@livekit/components-react";
 import { FC, useContext, useEffect, useState, useRef } from "react";
 
 const styles = /* css */ `

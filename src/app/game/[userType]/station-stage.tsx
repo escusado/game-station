@@ -1,6 +1,7 @@
+import Game, { emptyPlayerInput, PlayerInput } from "@/app/three/Game";
 import { RoomContext } from "@livekit/components-react";
 import { Participant, TextStreamReader } from "livekit-client";
-import { FC, useContext, useEffect } from "react";
+import { FC, useContext, useEffect, useState } from "react";
 
 type StationStageProps = {
   className?: string;
@@ -8,11 +9,16 @@ type StationStageProps = {
 
 const StationStage: FC<StationStageProps> = ({ className }) => {
   const context = useContext(RoomContext);
+  const [latestParticipant, setLatestParticipant] =
+    useState<Participant | null>(null);
+  const [latestPlayerInput, setLatestPlayerInput] =
+    useState<PlayerInput>(emptyPlayerInput);
 
   useEffect(() => {
     if (context) {
       context.on("participantConnected", (participant: Participant) => {
         console.log(`Participant connected: ${participant.identity}`);
+        setLatestParticipant(participant);
       });
 
       context.registerTextStreamHandler(
@@ -20,7 +26,10 @@ const StationStage: FC<StationStageProps> = ({ className }) => {
         (reader: TextStreamReader, participantInfo: { identity: string }) => {
           console.log(`Text stream from ${participantInfo.identity}:`);
           reader.readAll().then((message) => {
-            console.log("🧀>>> ", message);
+            setLatestPlayerInput({
+              identity: participantInfo.identity,
+              inputs: JSON.parse(message),
+            });
           });
         },
       );
@@ -34,7 +43,14 @@ const StationStage: FC<StationStageProps> = ({ className }) => {
     }
   }, [context]);
 
-  return <div className={`${className} bg-red-200`}>StationStage</div>;
+  return (
+    <div className={`${className} bg-red-200`}>
+      <Game
+        latestParticipant={latestParticipant}
+        latestPlayerInput={latestPlayerInput}
+      />
+    </div>
+  );
 };
 
 export default StationStage;
