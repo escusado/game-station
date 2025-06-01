@@ -1,3 +1,4 @@
+import Link from "next/link";
 import styles from "./page.module.css";
 
 export default function Home() {
@@ -5,8 +6,8 @@ export default function Home() {
     <main className={styles.main}>
       <h1 className={styles.title}>Welcome to My Next.js App</h1>
 
-      <a href="/game/station"> Station </a>
-      <a href="/game/player"> Player </a>
+      <Link href="/game/station"> Station </Link>
+      <Link href="/game/player"> Player </Link>
     </main>
   );
 }
