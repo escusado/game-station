@@ -58,7 +58,7 @@ const PlayerStage: FC<PlayerStageProps> = ({ className }) => {
           topic: "game",
         },
       );
-    }, 1000);
+    }, 50);
 
     return () => clearInterval(intervalId);
   }, [room]); // Only depends on room now

@@ -1,8 +1,7 @@
-import { useContext, useEffect, type FC } from "react";
+import { type FC } from "react";
 import Player from "./Player";
 import Terrain from "./Terrain";
-import { RoomContext } from "@livekit/components-react";
-import { ConnectionState } from "livekit-client";
+import useGameState, { iGameStore } from "./useGameState";
 
 type LevelProps = {
   className?: string;
@@ -18,15 +17,23 @@ const playerPositions: [number, number, number][] = [
 const playerColors = ["red", "blue", "yellow", "purple"];
 
 const Level: FC<LevelProps> = () => {
-  const room = useContext(RoomContext);
+  const players = useGameState((state: iGameStore) => state.players);
 
   return (
     <object3D>
       <Terrain position={[0, 0, 0]} />
-      {playerPositions.map((pos, index) => (
+      {/* {playerPositions.map((pos, index) => (
         <Player
           key={index}
           position={pos}
+          color={playerColors[index % playerColors.length]}
+        />
+      ))} */}
+      {players.map((player, index) => (
+        <Player
+          key={player.id}
+          position={playerPositions[index % playerPositions.length]}
+          rotation={player.rotation}
           color={playerColors[index % playerColors.length]}
         />
       ))}

@@ -1,72 +1,82 @@
 import React, { Suspense, useEffect } from "react";
 import { Canvas, extend } from "@react-three/fiber";
-import { OrbitControls, PerspectiveCamera, Stage } from "@react-three/drei";
+import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import Level from "./Level";
 import { Participant } from "livekit-client";
+import { iGameStore, PlayerInputs } from "./useGameState";
+
+import useGameState from "./useGameState";
 
 extend({ UnrealBloomPass });
 
 export const FROG_GAME_ROOM_NAME = "FROG_GAME_ROOM";
 
-export type PlayerInput = {
-  identity: string;
-  inputs: {
-    accelerometerStatus: { x: number; y: number; z: number };
-    gyroStatus: { alpha: number; beta: number; gamma: number };
-  };
-};
-export const emptyPlayerInput: PlayerInput = {
-  identity: "",
-  inputs: {
-    accelerometerStatus: { x: 0, y: 0, z: 0 },
-    gyroStatus: { alpha: 0, beta: 0, gamma: 0 },
-  },
-};
-
 type GameProps = {
-  latestPlayerInput: PlayerInput;
+  latestPlayerInput: { id: string; inputs: PlayerInputs };
   latestParticipant?: Participant | null;
 };
 const Game: React.FC<GameProps> = ({
   latestPlayerInput,
   latestParticipant,
 }) => {
-  useEffect(() => {
-    console.log("🎮>>> ", latestPlayerInput);
-  }, [latestPlayerInput]);
+  const addPlayer = useGameState((state: iGameStore) => state.addPlayer);
+  const players = useGameState((state: iGameStore) => state.players);
+  const updatePlayerInput = useGameState(
+    (state: iGameStore) => state.updatePlayerInput,
+  );
 
   useEffect(() => {
-    console.log("Latest participant: ", latestParticipant?.identity);
-  }, [latestParticipant]);
+    if (!latestPlayerInput) return;
+    updatePlayerInput(latestPlayerInput.id, latestPlayerInput.inputs);
+  }, [latestPlayerInput, updatePlayerInput]);
+
+  useEffect(() => {
+    if (!latestParticipant) return;
+    addPlayer({
+      id: latestParticipant?.identity || "",
+      name: latestParticipant?.identity || "Unknown Player",
+    });
+  }, [addPlayer, latestParticipant]);
 
   return (
-    <Canvas shadows style={{ height: "100%", width: "100%" }}>
-      {/* isometric camera */}
-      <PerspectiveCamera
-        makeDefault
-        position={[10, 10, 10]}
-        rotation={[-Math.PI / 4, 0, 0]}
-        fov={75}
-      />
-      <OrbitControls />
-      {/* <ambientLight intensity={0.5} /> */}
-      {/* <directionalLight intensity={1.5} position={[5, 10, 7.5]} castShadow /> */}
-      {/* <Environment preset="sunset" /> */}
-      <Suspense fallback={null}>
-        <Stage
-          // adjustCamera
-          intensity={0.5}
-          shadows="contact"
-          // environment="city"
-        >
+    <>
+      <Canvas shadows style={{ height: "100%", width: "100%" }}>
+        {/* isometric camera */}
+        <PerspectiveCamera
+          makeDefault
+          position={[10, 10, 10]}
+          rotation={[-Math.PI / 4, 0, 0]}
+          fov={75}
+        />
+        <OrbitControls />
+        <ambientLight intensity={1} />
+        <directionalLight intensity={1.5} position={[5, 10, 7.5]} castShadow />
+
+        <Suspense fallback={null}>
           <Level />
-        </Stage>
-        {/* <Effects>
-          <unrealBloomPass threshold={1} strength={0.5} radius={0.5} />
-        </Effects> */}
-      </Suspense>
-    </Canvas>
+
+          {/* <Effects>
+            <unrealBloomPass threshold={1} strength={0.5} radius={0.5} />
+          </Effects> */}
+        </Suspense>
+      </Canvas>
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#fff",
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          fontSize: "8px",
+        }}
+      >
+        <pre>{JSON.stringify(players, null, 2)}</pre>
+      </div>
+    </>
   );
 };
 

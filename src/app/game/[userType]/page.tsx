@@ -7,10 +7,15 @@ import { useEffect, useState } from "react";
 
 import { v4 as uuidv4 } from "uuid";
 
-import PlayerStage from "./player-stage";
+// import PlayerStage from "./player-stage";
 import { useParams } from "next/navigation";
-import StationStage from "./station-stage";
+// import StationStage from "./station-stage";
 import { FROG_GAME_ROOM_NAME } from "@/app/three/Game";
+
+import dynamic from "next/dynamic";
+
+const PlayerStage = dynamic(() => import("./player-stage"), { ssr: false });
+const StationStage = dynamic(() => import("./station-stage"), { ssr: false });
 
 export default function Page() {
   // TODO: get user input for room and name
@@ -62,11 +67,7 @@ export default function Page() {
   return (
     <RoomContext.Provider value={roomInstance}>
       <div data-lk-theme="default" style={{ height: "100dvh" }}>
-        {userType === "player" ? (
-          <PlayerStage className="bg-red-200" />
-        ) : (
-          <StationStage className="bg-blue-200" />
-        )}
+        {userType === "player" ? <PlayerStage /> : <StationStage />}
         <ConnectionState />
       </div>
     </RoomContext.Provider>
