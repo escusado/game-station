@@ -87,10 +87,6 @@ player devices share a web client/server abstraction.
 
 The application follows a client-server architecture using LiveKit for real-time communication between player devices and station displays:
 
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 - `game/[userType]/page.tsx` - Main entry point that handles routing between player and station modes, manages LiveKit room connections, and token authentication
 - `PlayerStage` - React component for mobile devices that captures accelerometer and gyroscope data from device sensors and transmits input data to the station via LiveKit
 - `StationStage` - React component for venue displays that receives player input data, manages participant connections, and renders the game interface
@@ -103,58 +99,72 @@ The application follows a client-server architecture using LiveKit for real-time
 
 ### Architecture Interaction Diagram
 
-```mermaid
-flowchart TB
-    subgraph "Mobile Device (Player)"
-        PS[PlayerStage]
-        DS[Device Sensors]
-        DS --> PS
-    end
+```
+                    ┌────────────────────────────────┐
+                    │         Entry Point            │
+                    │   game/[userType]/page.tsx     │
+                    └──────────┬─────────────────────┘
+                    ┌──────────▼─────────────┐
+                    │     Token API          │
+                    │   api/token/route.ts   │
+                    └──────────┬─────────────┘
+                               │
+                    ┌──────────▼─────────────┐
+                    │    LiveKit Room        │
+                    └──┬─────────────────┬───┘
+                       │                 │
+        ┌──────────────▼─────┐           │
+        │   Mobile Device    │           │
+        │     (Player)       │           │
+        │ ┌────────────────┐ │           │
+        │ │ Device Sensors │ │           │
+        │ │ • Accelerometer│ │           │
+        │ │ • Gyroscope    │ │           │
+        │ └────────┬───────┘ │           │
+        │ ┌────────▼───────┐ │           │
+        │ │  PlayerStage   │ │           │
+        │ │  LiveKit Link  │ │           │
+        │ └┬───────────────┘ │           │
+        └─-|───────-─────────┘           │
+           |                             │
+           |                 ┌──────────-▼─────────────┐
+           |                 │   Venue Display         │
+           |                 │     (Station)           │
+           |                 │ ┌─────────────────────┐ │
+           |                 │ │   StationStage      │ │
+           |                 │ └──────────┬──────────┘ │
+           |                 │ ┌──────────▼──────────┐ │
+           |                 │ │    Game Component   │◄┼─---┐
+           |                 │ └──────────┬──────────┘ │    │
+           |                 │ ┌──────────▼──────────┐ │    │
+           |                 │ │       Level         │ │    │
+           |                 │ └──┬─────────────┬────┘ │    │
+           |                 │ ┌──▼───────┐ ┌──▼────┐  │    │
+           |                 │ │ Player   │ │Terrain│  │    │
+           |                 │ │ Objects  │ │       │  │    │
+           |                 │ └──────────┘ └───────┘  │    │
+           |                 └─────────────────────────┘    │
+           |                 ┌───────────────────────────---┘
+           |                 │
+           |       ┌─────────▼────────────┐
+           |       │   State Management   │
+           |       │                      │
+           |       │ ┌──────────────────┐ │
+           |       │ │   useGameState   │ │
+           |       │ │    (Zustand)     │ │
+           |       │ │                  │ │
+           |       │ │ • Players[]      │ │
+           |       │ │ • Positions      │ │
+           |       │ │ • Rotations      │ │
+           └----------🞂 Input Data     │ │
+                   │ └──────────────────┘ │
+                   └──────────────────────┘
 
-    subgraph "Venue Display (Station)"
-        SS[StationStage]
-        G[Game Component]
-        L[Level]
-        P[Player Objects]
-        T[Terrain]
-        SS --> G
-        G --> L
-        L --> P
-        L --> T
-    end
-
-    subgraph "State Management"
-        GS[(useGameState)]
-    end
-
-    subgraph "LiveKit Infrastructure"
-        LK[LiveKit Room]
-        API[Token API]
-    end
-
-    subgraph "Entry Point"
-        EP[game/userType/page.tsx]
-    end
-
-    EP -->|userType=player| PS
-    EP -->|userType=station| SS
-    EP --> API
-    API --> LK
-    PS -->|Sensor Data| LK
-    LK -->|Player Input| SS
-    G <--> GS
-    SS -->|Participant Events| GS
-    PS -->|Device Motion| LK
-
-    classDef mobile fill:#ff9999
-    classDef station fill:#99ccff
-    classDef state fill:#99ff99
-    classDef infrastructure fill:#ffcc99
-    classDef entry fill:#cc99ff
-
-    class PS,DS mobile
-    class SS,G,L,P,T station
-    class GS state
-    class LK,API infrastructure
-    class EP entry
+Data Flow:
+─────────
+Mobile Device Sensors → PlayerStage → LiveKit Room → StationStage
+                                          ↓
+StationStage → Game Component ↔ useGameState (Bidirectional)
+                     ↓
+Game Component → Level → {Player Objects, Terrain}
 ```
