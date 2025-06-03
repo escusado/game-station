@@ -9,11 +9,13 @@ import { v4 as uuidv4 } from "uuid";
 
 import { useParams } from "next/navigation";
 import { FROG_GAME_ROOM_NAME } from "@/app/three/Game";
+import PlayerStage from "./PlayerStage";
+import StationStage from "./StationStage";
 
-import dynamic from "next/dynamic";
+// import dynamic from "next/dynamic";
 
-const PlayerStage = dynamic(() => import("./player-stage"), { ssr: false });
-const StationStage = dynamic(() => import("./station-stage"), { ssr: false });
+// const PlayerStage = dynamic(() => import("./PlayerStage"), { ssr: false });
+// const StationStage = dynamic(() => import("./StationStage"), { ssr: false });
 
 export default function Page() {
   const { userType } = useParams();

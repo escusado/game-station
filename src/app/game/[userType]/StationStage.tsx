@@ -27,20 +27,22 @@ const StationStage: FC = () => {
 
   useEffect(() => {
     if (context) {
-      context.on("participantConnected", (participant: Participant) => {
-        console.log(`Participant connected: ${participant.identity}`);
-        setLatestParticipant(participant);
-      });
-
       context.registerTextStreamHandler(
         "game",
-        (reader: TextStreamReader, participantInfo: { identity: string }) => {
+        (reader: TextStreamReader, participantInfo: Partial<Participant>) => {
           console.log(`Text stream from ${participantInfo.identity}:`);
           reader.readAll().then((message) => {
-            setLatestPlayerInput({
-              id: participantInfo.identity,
-              inputs: JSON.parse(message),
-            });
+            try {
+              if (message) {
+                setLatestParticipant(participantInfo as Participant);
+                setLatestPlayerInput({
+                  id: participantInfo.identity || "",
+                  inputs: JSON.parse(message),
+                });
+              }
+            } catch (error) {
+              console.error("Error parsing message:", error);
+            }
           });
         },
       );

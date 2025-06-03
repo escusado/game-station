@@ -63,8 +63,8 @@ const useGameStore = create<iGameStore>((set) => ({
               ...p,
               inputs,
               rotation: [
-                inputs.gyroStatus.alpha * degToRad,
                 inputs.gyroStatus.beta * degToRad,
+                inputs.gyroStatus.alpha * degToRad,
                 inputs.gyroStatus.gamma * degToRad,
               ],
             }
