@@ -1,6 +1,4 @@
-# DINOTaG
-
-## Drop In-N'-Out Table Games
+## Drop In-N'-Out Shared Games
 
 # Overview
 
@@ -67,35 +65,31 @@ The application is based on the existing NextJs starter project for the LikveKit
 tutorial, where a simple backend component is used to generate tokens for the
 apps to use.
 
-The main functionality happens at the front-end where the venue screens and
-player devices share a web client/server abstraction.
+The application follows a client-server architecture using LiveKit for real-time
+communication between player devices and station displays:
 
-- `Station` Stage the React component that holds the venue screen logic, the idea is
-  to make games "pluggeable" so different games can be loaded at different
-  `Station`s. This POC has a basic Frogger-like game to demo the idea.
-- `Player` Stage a React component holding a basic screen for the user to allow
-  for accelerometer and gyro data read for the browser and basic game input ui.
-- `game/[userType]/page.tsx` Basic routing for `Station`s and `Player`s and
-  stablishes the LiveKit connection.
-- `useGameState` Basic state management using `zustand`.
-- `Game` A basic React THREE Fiber game logic to demo the idea of a shared game
-  space.
-
-## Architecture description
+- `game/[userType]/page.tsx` - Main entry point that handles routing between
+  player and station modes, manages LiveKit room connections, and token
+  authentication
+- `PlayerStage` - React component for mobile devices that captures
+  accelerometer and gyroscope data from device sensors and transmits input data
+  to the station via LiveKit
+- `StationStage` - React component for venue displays that receives player
+  input data, manages participant connections, and renders the game interface
+- `Game` - React Three Fiber component that orchestrates the 3D game
+  environment, manages player state, and handles real-time updates from
+  connected players
+- `useGameState` - Zustand store for centralized state management of players,
+  their positions, rotations, and input data across the application
+- `Level` - 3D scene manager that positions players in the game world and
+  renders the terrain and game objects
+- `Player` - Individual 3D player representation that displays colored cubes
+  with rotation based on device orientation data
+- `Terrain` - Static 3D ground plane that serves as the game environment base
+- `api/token/route.ts` - Next.js API endpoint that generates LiveKit access
+  tokens for secure room authentication
 
 ### Component Overview
-
-The application follows a client-server architecture using LiveKit for real-time communication between player devices and station displays:
-
-- `game/[userType]/page.tsx` - Main entry point that handles routing between player and station modes, manages LiveKit room connections, and token authentication
-- `PlayerStage` - React component for mobile devices that captures accelerometer and gyroscope data from device sensors and transmits input data to the station via LiveKit
-- `StationStage` - React component for venue displays that receives player input data, manages participant connections, and renders the game interface
-- `Game` - React Three Fiber component that orchestrates the 3D game environment, manages player state, and handles real-time updates from connected players
-- `useGameState` - Zustand store for centralized state management of players, their positions, rotations, and input data across the application
-- `Level` - 3D scene manager that positions players in the game world and renders the terrain and game objects
-- `Player` - Individual 3D player representation that displays colored cubes with rotation based on device orientation data
-- `Terrain` - Static 3D ground plane that serves as the game environment base
-- `api/token/route.ts` - Next.js API endpoint that generates LiveKit access tokens for secure room authentication
 
 ### Architecture Interaction Diagram
 
