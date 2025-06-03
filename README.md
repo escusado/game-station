@@ -87,7 +87,10 @@ player devices share a web client/server abstraction.
 
 The application follows a client-server architecture using LiveKit for real-time communication between player devices and station displays:
 
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 - `game/[userType]/page.tsx` - Main entry point that handles routing between player and station modes, manages LiveKit room connections, and token authentication
 - `PlayerStage` - React component for mobile devices that captures accelerometer and gyroscope data from device sensors and transmits input data to the station via LiveKit
 - `StationStage` - React component for venue displays that receives player input data, manages participant connections, and renders the game interface
@@ -130,7 +133,7 @@ flowchart TB
     end
 
     subgraph "Entry Point"
-        EP[game/[userType]/page.tsx]
+        EP[game/userType/page.tsx]
     end
 
     EP -->|userType=player| PS
