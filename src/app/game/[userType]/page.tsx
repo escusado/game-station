@@ -7,9 +7,7 @@ import { useEffect, useState } from "react";
 
 import { v4 as uuidv4 } from "uuid";
 
-// import PlayerStage from "./player-stage";
 import { useParams } from "next/navigation";
-// import StationStage from "./station-stage";
 import { FROG_GAME_ROOM_NAME } from "@/app/three/Game";
 
 import dynamic from "next/dynamic";
@@ -18,7 +16,6 @@ const PlayerStage = dynamic(() => import("./player-stage"), { ssr: false });
 const StationStage = dynamic(() => import("./station-stage"), { ssr: false });
 
 export default function Page() {
-  // TODO: get user input for room and name
   const { userType } = useParams();
   const [token, setToken] = useState("");
   const room = FROG_GAME_ROOM_NAME;

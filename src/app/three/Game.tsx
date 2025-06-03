@@ -42,7 +42,6 @@ const Game: React.FC<GameProps> = ({
   return (
     <>
       <Canvas shadows style={{ height: "100%", width: "100%" }}>
-        {/* isometric camera */}
         <PerspectiveCamera
           makeDefault
           position={[10, 10, 10]}
@@ -55,10 +54,6 @@ const Game: React.FC<GameProps> = ({
 
         <Suspense fallback={null}>
           <Level />
-
-          {/* <Effects>
-            <unrealBloomPass threshold={1} strength={0.5} radius={0.5} />
-          </Effects> */}
         </Suspense>
       </Canvas>
       <div

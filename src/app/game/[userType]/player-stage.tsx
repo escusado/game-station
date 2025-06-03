@@ -61,7 +61,7 @@ const PlayerStage: FC<PlayerStageProps> = ({ className }) => {
     }, 50);
 
     return () => clearInterval(intervalId);
-  }, [room]); // Only depends on room now
+  }, [room]);
 
   const requestDeviceSensorAccess = async () => {
     try {

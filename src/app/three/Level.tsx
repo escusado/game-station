@@ -22,13 +22,6 @@ const Level: FC<LevelProps> = () => {
   return (
     <object3D>
       <Terrain position={[0, 0, 0]} />
-      {/* {playerPositions.map((pos, index) => (
-        <Player
-          key={index}
-          position={pos}
-          color={playerColors[index % playerColors.length]}
-        />
-      ))} */}
       {players.map((player, index) => (
         <Player
           key={player.id}
