@@ -1,19 +1,17 @@
 import { FC } from "react";
-import { TerrainElementPaths, TerrainElements } from "./Terrain";
-import { Gltf } from "@react-three/drei";
-import { ThreeElements } from "@react-three/fiber";
 
-const Road: FC<ThreeElements["object3D"]> = (props) => {
+import { ThreeElements } from "@react-three/fiber";
+import RoadTile from "./RoadTile";
+
+const Road: FC<ThreeElements["object3D"] & { stageSize: number }> = (props) => {
   return (
-    <object3D {...props}>
-      {Array.from({ length: 10 }).map((_, index) => (
-        <Gltf
-          key={`road-tile-${index}`}
-          position={[index, 0, 0]} // Adjust the position for each segment
-          src={TerrainElementPaths[TerrainElements.ROAD_STRAIGHT]}
-        />
-      ))}
-    </object3D>
+    <>
+      <object3D {...props}>
+        {Array.from({ length: props.stageSize }).map((_, index) => (
+          <RoadTile key={"road-tile-" + index} position={[index + 0.5, 0, 0]} />
+        ))}
+      </object3D>
+    </>
   );
 };
 

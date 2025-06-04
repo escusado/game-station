@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev --turbopack --experimental-https -p 8080",
     "build": "next build",
+    "postinstall": "./build.sh",
+    "postrestart": "./build.sh",
     "start": "next start",
     "lint": "next lint"
   },

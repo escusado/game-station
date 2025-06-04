@@ -1,5 +1,6 @@
 import "react";
 import { create } from "zustand";
+import { playerPositions } from "./Level";
 const degToRad = Math.PI / 180;
 
 export type PlayerInputs = {
@@ -23,12 +24,16 @@ type Player = {
 
 export interface iGameStore {
   players: Player[];
+  roadLength: number;
+  roadCount: number;
   addPlayer: (player: { id: string; name: string }) => void;
   updatePlayerInput: (playerId: string, inputs: PlayerInputs) => void;
 }
 
 const useGameStore = create<iGameStore>((set) => ({
   players: [],
+  roadLength: 5,
+  roadCount: 10,
   addPlayer: (player: { id: string; name: string }) =>
     set((store) => {
       const existingPlayer = store.players.find((p) => p.id === player.id);
@@ -36,7 +41,12 @@ const useGameStore = create<iGameStore>((set) => ({
         return {
           players: store.players.map((p) =>
             p.id === player.id
-              ? { ...p, name: player.name, score: p.score + 1 }
+              ? {
+                  ...p,
+                  name: player.name,
+                  score: p.score + 1,
+                  position: playerPositions[store.players.length + 1],
+                }
               : p,
           ),
         };

@@ -1,3 +1,5 @@
+src/models_build
+public/models_build
 .DS_Store
 logs
 *.log

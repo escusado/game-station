@@ -2,34 +2,48 @@ import { type FC } from "react";
 import Player from "./Player";
 import Terrain from "./Terrain";
 import useGameState, { iGameStore } from "./useGameState";
+import Road from "./Road";
 
 type LevelProps = {
   className?: string;
 };
 
-const playerPositions: [number, number, number][] = [
-  [-4, 0.5, -4],
-  [4, 0.5, -4],
-  [-4, 0.5, 4],
-  [4, 0.5, 4],
+export const playerPositions: [number, number, number][] = [
+  [-4, 0, 4.5],
+  [4, 0, -6],
+  [4, 0, -8],
+  [4, 0, -20],
 ];
 
-const playerColors = ["red", "blue", "yellow", "purple"];
+export const playerColors = ["red", "blue", "yellow", "purple"];
 
 const Level: FC<LevelProps> = () => {
   const players = useGameState((state: iGameStore) => state.players);
-
+  const roadLength = useGameState((state: iGameStore) => state.roadLength);
+  const roadCount = useGameState((state: iGameStore) => state.roadCount);
+  const stageSize = roadLength + 2;
   return (
     <object3D>
-      <Terrain position={[0, 0, 0]} />
-      {players.map((player, index) => (
-        <Player
-          key={player.id}
-          position={playerPositions[index % playerPositions.length]}
-          rotation={player.rotation}
-          color={playerColors[index % playerColors.length]}
-        />
-      ))}
+      <Terrain stageSize={stageSize} roadCount={roadCount} />
+      <object3D position={[-roadLength / 2 + 2.5, 0, 0]}>
+        {players.map((player, index) => (
+          <Player
+            key={player.id}
+            position={[index * 2, 0, 0]}
+            rotation={player.rotation}
+          />
+        ))}
+      </object3D>
+
+      <object3D position={[-stageSize / 2, 0, -((roadCount * 2 - 1) / 2)]}>
+        {Array.from({ length: roadCount }).map((_, index) => (
+          <Road
+            key={"road-" + index}
+            stageSize={stageSize}
+            position={[0, 0, index * 2 + 0.5]}
+          />
+        ))}
+      </object3D>
     </object3D>
   );
 };

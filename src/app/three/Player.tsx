@@ -1,18 +1,13 @@
 import React from "react";
-import { Box } from "@react-three/drei";
+import { ThreeElements } from "@react-three/fiber";
+import FrogModel from "../../models_build/frog";
+// import useGameStore from "./useGameState";
 
-interface PlayerProps {
-  position: [number, number, number];
-  color: string;
-  rotation?: [number, number, number];
-}
-
-const Player: React.FC<PlayerProps> = ({ position, color, rotation }) => {
+const Player: React.FC<ThreeElements["object3D"]> = (props) => {
   return (
-    <Box args={[1, 1, 1]} position={position} rotation={rotation} castShadow>
-      <meshStandardMaterial attach="material" color={color} />
-      <axesHelper args={[2]} />
-    </Box>
+    <object3D {...props}>
+      <FrogModel scale={[0.3, 0.3, 0.3]} />
+    </object3D>
   );
 };
 
