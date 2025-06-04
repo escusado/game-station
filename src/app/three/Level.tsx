@@ -21,11 +21,12 @@ const Level: FC<LevelProps> = () => {
   const players = useGameState((state: iGameStore) => state.players);
   const roadLength = useGameState((state: iGameStore) => state.roadLength);
   const roadCount = useGameState((state: iGameStore) => state.roadCount);
+  // road padding (+2) to allow time for the player to see the cars
   const stageSize = roadLength + 2;
   return (
     <object3D>
       <Terrain stageSize={stageSize} roadCount={roadCount} />
-      <object3D position={[-roadLength / 2 + 2.5, 0, 0]}>
+      <object3D position={[-(stageSize / 2 - 1), 0, -roadCount]}>
         {players.map((player, index) => (
           <Player
             key={player.id}

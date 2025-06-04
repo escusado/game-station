@@ -32,7 +32,7 @@ export interface iGameStore {
 
 const useGameStore = create<iGameStore>((set) => ({
   players: [],
-  roadLength: 5,
+  roadLength: 8,
   roadCount: 10,
   addPlayer: (player: { id: string; name: string }) =>
     set((store) => {
