@@ -4,43 +4,45 @@ import { ConnectionState, RoomContext } from "@livekit/components-react";
 import { Room } from "livekit-client";
 import "@livekit/components-styles";
 import { useEffect, useState } from "react";
-
 import { v4 as uuidv4 } from "uuid";
-
-import { useParams } from "next/navigation";
-import { FROG_GAME_ROOM_NAME } from "@/app/three/Game";
+import { useParams, useSearchParams } from "next/navigation";
 import PlayerStage from "./PlayerStage";
 import StationStage from "./StationStage";
+import { FROG_GAME_ROOM_NAME } from "@/app/three/Game";
 
-// import dynamic from "next/dynamic";
-
-// const PlayerStage = dynamic(() => import("./PlayerStage"), { ssr: false });
-// const StationStage = dynamic(() => import("./StationStage"), { ssr: false });
+// let baseUrl = window.location.origin;
+const baseUrl = `https://192.168.1.74:8080/`;
+const playerPathTemplate = "game/player?roomName={ROOM_NAME}";
 
 export default function Page() {
   const { userType } = useParams();
   const [token, setToken] = useState("");
-  const room = FROG_GAME_ROOM_NAME;
-  const name = `${userType}-user-${uuidv4()}`;
-  const [roomInstance] = useState(
-    () =>
-      new Room({
-        adaptiveStream: true,
-        dynacast: true,
-      }),
-  );
+  const [joinUrl, setJoinUrl] = useState("");
+  const userName = `${userType}-user-${uuidv4()}`;
+  const [roomInstance] = useState(() => new Room());
+
+  // players ask for specific rooms if not we assume station and generate a new room name
+  const roomNameFromUrl = useSearchParams().get("roomName");
+  const roomName = roomNameFromUrl ?? `${FROG_GAME_ROOM_NAME}-${uuidv4()}`;
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const resp = await fetch(`/api/token?room=${room}&username=${name}`);
+        const resp = await fetch(
+          `/api/token?room=${roomName}&username=${userName}`,
+        );
         const data = await resp.json();
         if (!mounted) return;
         if (data.token) {
           await roomInstance.connect(
             "wss://botica-xx5oh8p6.livekit.cloud",
             data.token,
+          );
+
+          setJoinUrl(
+            baseUrl +
+              playerPathTemplate.replace("{ROOM_NAME}", roomInstance.name),
           );
           setToken(data.token);
         }
@@ -53,6 +55,8 @@ export default function Page() {
       mounted = false;
       roomInstance.disconnect();
     };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomInstance]);
 
   if (token === "") {
@@ -66,7 +70,11 @@ export default function Page() {
   return (
     <RoomContext.Provider value={roomInstance}>
       <div data-lk-theme="default" style={{ height: "100dvh" }}>
-        {userType === "player" ? <PlayerStage /> : <StationStage />}
+        {userType === "player" ? (
+          <PlayerStage />
+        ) : (
+          <StationStage joinUrl={joinUrl} />
+        )}
         <ConnectionState />
       </div>
     </RoomContext.Provider>

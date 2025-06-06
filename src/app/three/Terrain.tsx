@@ -9,7 +9,7 @@ type TerrainProps = ThreeElements["object3D"] & {
 
 const Terrain: React.FC<TerrainProps> = ({ stageSize, roadCount }) => {
   return (
-    <object3D position={[0, 0, 0]}>
+    <object3D position={[0, -0.1, 0]}>
       <Plane
         // roads are the length of the stage, and the stage adjusts to
         // accomodate all rows, space between them (*2) and padding for staring

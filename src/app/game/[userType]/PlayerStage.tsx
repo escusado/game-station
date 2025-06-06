@@ -1,49 +1,43 @@
+import PlayerMain from "@/app/components/PlayerMain";
 import { RoomContext } from "@livekit/components-react";
 import { FC, useContext, useEffect, useState, useRef } from "react";
 
 const styles = /* css */ `
-.app-client {
+.player-stage {
   width: 100%;
   height: 100%;
-  background-color: #FF3399;
-  display: flex;
-  flex-direction: column;
-}
-
-.app-client p {
-  margin: 0;
-}
-
-.button {
-  width: 100px;
-  height: 50px;
-  background-color: #4CAF50;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  color: #333;
-  justify-content: center;
-}
-
-.status {
-  fzont-size: 8px;
+  background-color: #EEE;
 }
 `;
 
-type PlayerStageProps = {
-  className?: string;
+export enum ButtonStatus {
+  IDLE = "IDLE",
+  PRESSED = "PRESSED",
+}
+
+export type InputStatus = {
+  buttons: {
+    jump: ButtonStatus;
+  };
 };
 
-const PlayerStage: FC<PlayerStageProps> = ({ className }) => {
+export const defaultInputStatus = {
+  buttons: { jump: ButtonStatus.IDLE },
+};
+
+const PlayerStage: FC = () => {
   const room = useContext(RoomContext);
 
+  const [hasGameStarted, setHasGameStarted] = useState(false);
   const [accelerometerStatus, setAccelerometerStatus] = useState({});
   const [gyroStatus, setGyroStatus] = useState({});
+  const [inputStatus, setInputStatus] = useState(
+    Object.assign({}, defaultInputStatus),
+  );
 
   const accelerometerStatusRef = useRef({ x: 0, y: 0, z: 0 });
   const gyroStatusRef = useRef({ alpha: 0, beta: 0, gamma: 0 });
+  const inputStatusRef = useRef(Object.assign({}, defaultInputStatus));
 
   useEffect(() => {
     if (!room) return;
@@ -53,6 +47,7 @@ const PlayerStage: FC<PlayerStageProps> = ({ className }) => {
         JSON.stringify({
           accelerometerStatus: accelerometerStatusRef.current,
           gyroStatus: gyroStatusRef.current,
+          inputStatus: inputStatusRef.current,
         }),
         {
           topic: "game",
@@ -64,6 +59,7 @@ const PlayerStage: FC<PlayerStageProps> = ({ className }) => {
   }, [room]);
 
   const requestDeviceSensorAccess = async () => {
+    setHasGameStarted(true);
     try {
       // @ts-expect-error DeviceMotionEvent and DeviceOrientationEvent are not defined in all environments
       DeviceMotionEvent.requestPermission();
@@ -92,24 +88,28 @@ const PlayerStage: FC<PlayerStageProps> = ({ className }) => {
     }
   };
 
+  useEffect(() => {
+    inputStatusRef.current = inputStatus;
+  }, [inputStatus]);
+
   return (
-    <div className={`${className} bg-red-200`}>
-      PlayerStage
-      <>
-        <style>{styles}</style>
-        <div className="app-client">
-          <div className="button" onClick={requestDeviceSensorAccess}>
-            Request access
-          </div>
+    <>
+      <style>{styles}</style>
+      <div className="player-stage">
+        <PlayerMain
+          setInputStatus={setInputStatus}
+          onStartClick={requestDeviceSensorAccess}
+          hasGameStarted={hasGameStarted}
+        >
           <div className="status">
             <pre>{JSON.stringify(accelerometerStatus, null, 2)}</pre>
           </div>
           <div className="status">
             <pre>{JSON.stringify(gyroStatus, null, 2)}</pre>
           </div>
-        </div>
-      </>
-    </div>
+        </PlayerMain>
+      </div>
+    </>
   );
 };
 

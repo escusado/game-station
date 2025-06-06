@@ -44,7 +44,7 @@ const Game: React.FC<GameProps> = ({
       <Canvas shadows style={{ height: "100%", width: "100%" }}>
         <PerspectiveCamera
           makeDefault
-          position={[10, 10, 10]}
+          position={[-6, 10, -15]}
           rotation={[-Math.PI / 4, 0, 0]}
           fov={75}
         />

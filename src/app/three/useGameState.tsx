@@ -3,6 +3,25 @@ import { create } from "zustand";
 import { playerPositions } from "./Level";
 const degToRad = Math.PI / 180;
 
+// Helper function to interpolate between two angles, handling wrap-around
+const lerpAngle = (from: number, to: number, factor: number): number => {
+  const diff = ((to - from + Math.PI) % (2 * Math.PI)) - Math.PI;
+  return from + diff * factor;
+};
+
+// Helper function to interpolate rotation vectors smoothly
+const lerpRotation = (
+  from: [number, number, number],
+  to: [number, number, number],
+  factor: number,
+): [number, number, number] => {
+  return [
+    lerpAngle(from[0], to[0], factor),
+    lerpAngle(from[1], to[1], factor),
+    lerpAngle(from[2], to[2], factor),
+  ];
+};
+
 export type PlayerInputs = {
   accelerometerStatus: { x: number; y: number; z: number };
   gyroStatus: { alpha: number; beta: number; gamma: number };
@@ -19,6 +38,7 @@ type Player = {
   score: number;
   position: [number, number, number];
   rotation?: [number, number, number];
+  targetRotation?: [number, number, number];
   inputs: PlayerInputs;
 };
 
@@ -60,6 +80,7 @@ const useGameStore = create<iGameStore>((set) => ({
             score: 0,
             position: [0, 0, 0],
             rotation: [0, 0, 0],
+            targetRotation: [0, 0, 0],
             inputs: emptyPlayerInputs,
           },
         ],
@@ -67,19 +88,30 @@ const useGameStore = create<iGameStore>((set) => ({
     }),
   updatePlayerInput: (playerId: string, inputs: PlayerInputs) => {
     set((store) => ({
-      players: store.players.map((p) =>
-        p.id === playerId
-          ? {
-              ...p,
-              inputs,
-              rotation: [
-                inputs.gyroStatus.beta * degToRad,
-                inputs.gyroStatus.alpha * degToRad,
-                inputs.gyroStatus.gamma * degToRad,
-              ],
-            }
-          : p,
-      ),
+      players: store.players.map((p) => {
+        if (p.id === playerId) {
+          const targetRotation: [number, number, number] = [
+            inputs.gyroStatus.beta * degToRad,
+            inputs.gyroStatus.alpha * degToRad,
+            inputs.gyroStatus.gamma * degToRad,
+          ];
+          const currentRotation = p.rotation || [0, 0, 0];
+          const lerpFactor = 0.8;
+          const newRotation = lerpRotation(
+            currentRotation,
+            targetRotation,
+            lerpFactor,
+          );
+
+          return {
+            ...p,
+            inputs,
+            rotation: newRotation,
+            targetRotation,
+          };
+        }
+        return p;
+      }),
     }));
   },
 }));

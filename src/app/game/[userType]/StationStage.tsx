@@ -1,22 +1,24 @@
 import Game from "@/app/three/Game";
 import { emptyPlayerInputs, PlayerInputs } from "@/app/three/useGameState";
-
 import { RoomContext } from "@livekit/components-react";
 import { Participant, TextStreamReader } from "livekit-client";
 import { FC, useContext, useEffect, useState } from "react";
+import JoinQrCode from "@/app/components/JoinQrCode";
 
 const style = /* css */ `
-        .station-main-container {
-          width: 100%;
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-        }
+  .station-main-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+
 `;
 
-const StationStage: FC = () => {
+const StationStage: FC<{ joinUrl: string }> = ({ joinUrl }) => {
   const context = useContext(RoomContext);
   const [latestParticipant, setLatestParticipant] =
     useState<Participant | null>(null);
@@ -60,6 +62,7 @@ const StationStage: FC = () => {
     <>
       <style>{style}</style>
       <div className={"station-main-container"}>
+        <JoinQrCode url={joinUrl} />
         <Game
           latestParticipant={latestParticipant}
           latestPlayerInput={latestPlayerInput}
