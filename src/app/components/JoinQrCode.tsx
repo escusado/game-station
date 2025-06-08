@@ -85,7 +85,7 @@ const JoinQrCode: FC<JoinQrCodeProps> = ({ url }) => {
       <div className="qr-container">
         <div className="glow">
           <div className="body">
-            <div className="label">Jump In! 🐸</div>
+            <div className="label">Use phone to Join! 🐸</div>
             <QRCode size={128} value={url} />
           </div>
         </div>
