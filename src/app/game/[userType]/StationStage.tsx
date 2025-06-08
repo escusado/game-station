@@ -57,6 +57,7 @@ const StationStage: FC<{ joinUrl: string }> = ({ joinUrl }) => {
                   inputs: {
                     accelerometerStatus: inputMessage.accelerometerStatus,
                     gyroStatus: inputMessage.gyroStatus,
+                    buttons: inputMessage.inputStatus.buttons,
                   },
                 };
                 if (existingPlayer) {

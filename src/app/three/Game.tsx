@@ -11,11 +11,17 @@ export const FROG_GAME_ROOM_NAME = "FROG_GAME_ROOM";
 export type PlayerInputs = {
   accelerometerStatus: { x: number; y: number; z: number };
   gyroStatus: { alpha: number; beta: number; gamma: number };
+  buttons: {
+    jump: "IDLE" | "PRESSED";
+  };
 };
 
 export const emptyPlayerInputs: PlayerInputs = {
   accelerometerStatus: { x: 0, y: 0, z: 0 },
   gyroStatus: { alpha: 0, beta: 0, gamma: 0 },
+  buttons: {
+    jump: "IDLE",
+  },
 };
 
 export type Player = {

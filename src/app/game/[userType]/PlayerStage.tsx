@@ -21,7 +21,7 @@ export type InputStatus = {
   };
 };
 
-export const defaultInputStatus = {
+export const defaultButtonsStatus = {
   buttons: { jump: ButtonStatus.IDLE },
 };
 
@@ -31,13 +31,13 @@ const PlayerStage: FC = () => {
   const [hasGameStarted, setHasGameStarted] = useState(false);
   const [accelerometerStatus, setAccelerometerStatus] = useState({});
   const [gyroStatus, setGyroStatus] = useState({});
-  const [inputStatus, setInputStatus] = useState(
-    Object.assign({}, defaultInputStatus),
+  const [buttonStatus, setButtonStatus] = useState(
+    Object.assign({}, defaultButtonsStatus),
   );
 
   const accelerometerStatusRef = useRef({ x: 0, y: 0, z: 0 });
   const gyroStatusRef = useRef({ alpha: 0, beta: 0, gamma: 0 });
-  const inputStatusRef = useRef(Object.assign({}, defaultInputStatus));
+  const buttonStatusRef = useRef(Object.assign({}, defaultButtonsStatus));
 
   useEffect(() => {
     if (!room) return;
@@ -47,7 +47,7 @@ const PlayerStage: FC = () => {
         JSON.stringify({
           accelerometerStatus: accelerometerStatusRef.current,
           gyroStatus: gyroStatusRef.current,
-          inputStatus: inputStatusRef.current,
+          inputStatus: buttonStatusRef.current,
         }),
         { topic: "game" },
       );
@@ -64,11 +64,11 @@ const PlayerStage: FC = () => {
         JSON.stringify({
           accelerometerStatus: accelerometerStatusRef.current,
           gyroStatus: gyroStatusRef.current,
-          inputStatus: inputStatusRef.current,
+          inputStatus: buttonStatusRef.current,
         }),
         { topic: "game" },
       ))();
-  }, [inputStatus]);
+  }, [buttonStatus]);
 
   const requestDeviceSensorAccess = async () => {
     setHasGameStarted(true);
@@ -101,15 +101,15 @@ const PlayerStage: FC = () => {
   };
 
   useEffect(() => {
-    inputStatusRef.current = inputStatus;
-  }, [inputStatus]);
+    buttonStatusRef.current = buttonStatus;
+  }, [buttonStatus]);
 
   return (
     <>
       <style>{styles}</style>
       <div className="player-stage">
         <PlayerMain
-          setInputStatus={setInputStatus}
+          setButtonStatus={setButtonStatus}
           onStartClick={requestDeviceSensorAccess}
           hasGameStarted={hasGameStarted}
         >

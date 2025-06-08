@@ -4,7 +4,7 @@ import ChunkyButton from "./ChunkyButton";
 
 type PlayerMainProps = {
   children: React.ReactNode;
-  setInputStatus: (status: InputStatus) => void;
+  setButtonStatus: (status: InputStatus) => void;
   onStartClick?: () => void;
   hasGameStarted: boolean;
 };
@@ -34,7 +34,7 @@ const style = /*css*/ `
 `;
 
 const PlayerMain: FC<PlayerMainProps> = ({
-  setInputStatus,
+  setButtonStatus,
   children,
   onStartClick,
   hasGameStarted,
@@ -49,7 +49,7 @@ const PlayerMain: FC<PlayerMainProps> = ({
             <ChunkyButton
               label="JUMP"
               onButtonStatusChange={(status: ButtonStatus) =>
-                setInputStatus({ buttons: { jump: status } })
+                setButtonStatus({ buttons: { jump: status } })
               }
             />
           ) : (

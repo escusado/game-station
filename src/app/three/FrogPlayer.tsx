@@ -13,6 +13,7 @@ type PlayerProps = ThreeElements["object3D"] & {
 };
 
 const FrogPlayer: React.FC<PlayerProps> = ({ position, playerIndex }) => {
+  const playerRootRef = useRef<ThreeElements["object3D"]>(null);
   const directionModelRef = useRef<ThreeElements["object3D"]>(null);
 
   useFrame(() => {
@@ -20,15 +21,29 @@ const FrogPlayer: React.FC<PlayerProps> = ({ position, playerIndex }) => {
     if (!player.inputs) return;
     const {
       gyroStatus: { alpha },
+      buttons: { jump },
     } = player.inputs || emptyPlayerInputs;
 
-    if (directionModelRef.current && directionModelRef.current!.rotation) {
-      (directionModelRef.current.rotation as THREE.Euler).y = degToRad(alpha);
+    if (
+      directionModelRef.current &&
+      playerRootRef.current &&
+      directionModelRef.current!.rotation &&
+      playerRootRef.current!.position
+    ) {
+      const direction = degToRad(alpha);
+      (directionModelRef.current!.rotation as THREE.Euler).y = degToRad(alpha);
+      if (jump === "PRESSED") {
+        console.log(`Player ${player.id} jumped!`);
+        (playerRootRef.current!.position as THREE.Vector3).x +=
+          0.1 * Math.sin(direction);
+        (playerRootRef.current!.position as THREE.Vector3).z +=
+          0.1 * Math.cos(direction);
+      }
     }
   });
 
   return (
-    <group position={position}>
+    <group ref={playerRootRef} position={position}>
       <DurectionModel ref={directionModelRef} rotation={[0, 0, 0]} />
       <FrogModel scale={[0.3, 0.3, 0.3]} rotation={[0, Math.PI, 0]} />
     </group>
