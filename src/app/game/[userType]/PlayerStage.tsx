@@ -35,7 +35,11 @@ const PlayerStage: FC = () => {
     Object.assign({}, defaultButtonsStatus),
   );
 
-  const accelerometerStatusRef = useRef({ x: 0, y: 0, z: 0 });
+  const accelerometerStatusRef = useRef<DeviceMotionEventAcceleration>({
+    x: 0,
+    y: 0,
+    z: 0,
+  });
   const gyroStatusRef = useRef({ alpha: 0, beta: 0, gamma: 0 });
   const buttonStatusRef = useRef(Object.assign({}, defaultButtonsStatus));
 
@@ -72,30 +76,64 @@ const PlayerStage: FC = () => {
 
   const requestDeviceSensorAccess = async () => {
     setHasGameStarted(true);
-    try {
-      // @ts-expect-error DeviceMotionEvent and DeviceOrientationEvent are not defined in all environments
-      DeviceMotionEvent.requestPermission();
-      // @ts-expect-error DeviceOrientationEvent is not defined in all environments
-      DeviceOrientationEvent.requestPermission();
 
+    try {
+      // Check if we're on iOS and if permission request is available
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+      if (
+        isIOS &&
+        typeof DeviceMotionEvent !== "undefined" &&
+        "requestPermission" in DeviceMotionEvent
+      ) {
+        // iOS 13+ requires explicit permission
+        // @ts-expect-error DeviceMotionEvent.requestPermission is iOS-specific
+        const motionPermission = await DeviceMotionEvent.requestPermission();
+        const orientationPermission =
+          // @ts-expect-error DeviceOrientationEvent.requestPermission is iOS-specific
+          await DeviceOrientationEvent.requestPermission();
+
+        if (
+          motionPermission !== "granted" ||
+          orientationPermission !== "granted"
+        ) {
+          console.log("Device sensor permissions denied");
+          return;
+        }
+      }
+
+      // Add event listeners for both iOS and Android
       window.addEventListener("devicemotion", (event) => {
-        const { x, y, z } = event.accelerationIncludingGravity || {
+        const accelerometerStatus = event.accelerationIncludingGravity || {
           x: 0,
           y: 0,
           z: 0,
         };
-        setAccelerometerStatus({ x, y, z });
-        // @ts-expect-error DeviceMotionEvent is not defined in all environments
-        accelerometerStatusRef.current = { x, y, z };
+        setAccelerometerStatus(accelerometerStatus);
+        accelerometerStatusRef.current = accelerometerStatus;
       });
 
-      window.addEventListener("deviceorientation", ({ alpha, beta, gamma }) => {
-        // @ts-expect-error DeviceOrientationEvent is not defined in all environments
-        gyroStatusRef.current = { alpha, beta, gamma };
-        setGyroStatus({ alpha, beta, gamma });
+      window.addEventListener("deviceorientation", (event) => {
+        const { alpha, beta, gamma } = event;
+        const safeAlpha = alpha ?? 0;
+        const safeBeta = beta ?? 0;
+        const safeGamma = gamma ?? 0;
+
+        gyroStatusRef.current = {
+          alpha: safeAlpha,
+          beta: safeBeta,
+          gamma: safeGamma,
+        };
+        setGyroStatus({
+          alpha: safeAlpha,
+          beta: safeBeta,
+          gamma: safeGamma,
+        });
       });
+
+      console.log("Device sensor access initialized successfully");
     } catch (e) {
-      console.log("Error requesting access: " + JSON.stringify(e));
+      console.log("Error requesting sensor access: " + JSON.stringify(e));
       return;
     }
   };
