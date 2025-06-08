@@ -11,7 +11,7 @@ import StationStage from "./StationStage";
 import { FROG_GAME_ROOM_NAME } from "@/app/three/Game";
 
 // let baseUrl = window.location.origin;
-const baseUrl = `https://192.168.1.74:8080/`;
+const baseUrl = `https://192.168.1.158:8080/`;
 const playerPathTemplate = "game/player?roomName={ROOM_NAME}";
 
 export default function Page() {

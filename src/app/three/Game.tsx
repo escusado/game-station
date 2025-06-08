@@ -1,44 +1,33 @@
-import React, { Suspense, useEffect } from "react";
+import React, { Suspense } from "react";
 import { Canvas, extend } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import Level from "./Level";
-import { Participant } from "livekit-client";
-import { iGameStore, PlayerInputs } from "./useGameState";
-
-import useGameState from "./useGameState";
 
 extend({ UnrealBloomPass });
 
 export const FROG_GAME_ROOM_NAME = "FROG_GAME_ROOM";
 
-type GameProps = {
-  latestPlayerInput: { id: string; inputs: PlayerInputs };
-  latestParticipant?: Participant | null;
+export type PlayerInputs = {
+  accelerometerStatus: { x: number; y: number; z: number };
+  gyroStatus: { alpha: number; beta: number; gamma: number };
 };
-const Game: React.FC<GameProps> = ({
-  latestPlayerInput,
-  latestParticipant,
-}) => {
-  const addPlayer = useGameState((state: iGameStore) => state.addPlayer);
-  const players = useGameState((state: iGameStore) => state.players);
-  const updatePlayerInput = useGameState(
-    (state: iGameStore) => state.updatePlayerInput,
-  );
 
-  useEffect(() => {
-    if (!latestPlayerInput) return;
-    updatePlayerInput(latestPlayerInput.id, latestPlayerInput.inputs);
-  }, [latestPlayerInput, updatePlayerInput]);
+type GameProps = {
+  players: Player[];
+};
 
-  useEffect(() => {
-    if (!latestParticipant) return;
-    addPlayer({
-      id: latestParticipant?.identity || "",
-      name: latestParticipant?.identity || "Unknown Player",
-    });
-  }, [addPlayer, latestParticipant]);
+export const emptyPlayerInputs: PlayerInputs = {
+  accelerometerStatus: { x: 0, y: 0, z: 0 },
+  gyroStatus: { alpha: 0, beta: 0, gamma: 0 },
+};
 
+export type Player = {
+  id: string;
+  inputs?: PlayerInputs;
+};
+
+const Game: React.FC<GameProps> = () => {
   return (
     <>
       <Canvas shadows style={{ height: "100%", width: "100%" }}>
@@ -56,21 +45,6 @@ const Game: React.FC<GameProps> = ({
           <Level />
         </Suspense>
       </Canvas>
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#fff",
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
-          fontSize: "8px",
-        }}
-      >
-        <pre>{JSON.stringify(players, null, 2)}</pre>
-      </div>
     </>
   );
 };

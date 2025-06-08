@@ -49,14 +49,26 @@ const PlayerStage: FC = () => {
           gyroStatus: gyroStatusRef.current,
           inputStatus: inputStatusRef.current,
         }),
-        {
-          topic: "game",
-        },
+        { topic: "game" },
       );
     }, 50);
 
     return () => clearInterval(intervalId);
   }, [room]);
+
+  // make sure we send the PRESSED status
+  useEffect(() => {
+    if (room === undefined) return;
+    (async () =>
+      await room.localParticipant.sendText(
+        JSON.stringify({
+          accelerometerStatus: accelerometerStatusRef.current,
+          gyroStatus: gyroStatusRef.current,
+          inputStatus: inputStatusRef.current,
+        }),
+        { topic: "game" },
+      ))();
+  }, [inputStatus]);
 
   const requestDeviceSensorAccess = async () => {
     setHasGameStarted(true);
