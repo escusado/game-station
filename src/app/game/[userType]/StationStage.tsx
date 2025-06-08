@@ -2,8 +2,9 @@ import Game, { Player } from "@/app/three/Game";
 
 import { RoomContext } from "@livekit/components-react";
 import { Participant, TextStreamReader } from "livekit-client";
-import { createContext, FC, useContext, useEffect, useState } from "react";
+import { createContext, FC, useContext, useEffect } from "react";
 import JoinQrCode from "@/app/components/JoinQrCode";
+import { create } from "zustand";
 
 const style = /* css */ `
   .station-main-container {
@@ -18,9 +19,20 @@ const style = /* css */ `
 
 export const PlayersContext = createContext<Player[]>([]);
 
+// public singleton zustand store for players
+type PlayersStore = {
+  players: Player[];
+  setPlayers: (newPlayers: Player[]) => void;
+};
+
+export const usePlayersStore = create<PlayersStore>((set) => ({
+  players: [],
+  setPlayers: (newPlayers: Player[]) => set({ players: newPlayers }),
+}));
+
 const StationStage: FC<{ joinUrl: string }> = ({ joinUrl }) => {
   const context = useContext(RoomContext);
-  const [players, setPlayers] = useState<Player[]>([]);
+  const players = usePlayersStore((state) => state.players);
 
   useEffect(() => {
     if (context) {
@@ -32,33 +44,32 @@ const StationStage: FC<{ joinUrl: string }> = ({ joinUrl }) => {
         ) => {
           await reader.readAll().then((message) => {
             try {
-              if (message) {
+              if (message && participantInfo.identity) {
                 const inputMessage = JSON.parse(message);
 
-                setPlayers((prevPlayers) => {
-                  const existingPlayerIndex = prevPlayers.findIndex(
-                    (p) => p.id === participantInfo.identity,
+                const playerId = participantInfo.identity;
+                const { players, setPlayers } = usePlayersStore.getState();
+                const existingPlayer = players.find(
+                  (player) => player.id === playerId,
+                );
+                const newPlayer: Player = {
+                  id: playerId,
+                  inputs: {
+                    accelerometerStatus: inputMessage.accelerometerStatus,
+                    gyroStatus: inputMessage.gyroStatus,
+                  },
+                };
+                if (existingPlayer) {
+                  // Update existing player
+                  setPlayers(
+                    players.map((player) =>
+                      player.id === playerId ? newPlayer : player,
+                    ),
                   );
-
-                  if (existingPlayerIndex !== -1) {
-                    // Update existing player
-                    const updatedPlayers = [...prevPlayers];
-                    updatedPlayers[existingPlayerIndex] = {
-                      ...updatedPlayers[existingPlayerIndex],
-                      inputs: inputMessage,
-                    };
-                    return updatedPlayers;
-                  } else {
-                    // Add new player
-                    return [
-                      ...prevPlayers,
-                      {
-                        id: participantInfo.identity || "",
-                        inputs: inputMessage,
-                      },
-                    ];
-                  }
-                });
+                } else {
+                  // Add new player
+                  setPlayers([...players, newPlayer]);
+                }
               }
             } catch (error) {
               console.error("Error parsing message:", error);
@@ -67,24 +78,34 @@ const StationStage: FC<{ joinUrl: string }> = ({ joinUrl }) => {
         },
       );
 
-      return () => {
-        context.off("participantConnected", (participant: Participant) => {
-          console.log(`Participant disconnected: ${participant.identity}`);
-          setPlayers((prevPlayers) =>
-            prevPlayers.filter((p) => p.id !== participant.identity),
+      const handleParticipantDisconnected = (participant: Participant) => {
+        console.log(`Participant disconnected: ${participant.identity}`);
+        usePlayersStore
+          .getState()
+          .setPlayers(
+            usePlayersStore
+              .getState()
+              .players.filter((player) => player.id !== participant.identity),
           );
-        });
+      };
+
+      context.on("participantDisconnected", handleParticipantDisconnected);
+
+      return () => {
+        context.off("participantDisconnected", handleParticipantDisconnected);
         context.unregisterTextStreamHandler("game");
+        // Clean up players when the context is unmounted
+        usePlayersStore.getState().setPlayers([]);
       };
     }
-  }, [context]);
+  }, []);
 
   return (
-    <PlayersContext.Provider value={players}>
+    <>
       <style>{style}</style>
       <div className={"station-main-container"}>
         <JoinQrCode url={joinUrl} />
-        <Game players={players} />
+        <Game />
       </div>
 
       <div
@@ -102,7 +123,7 @@ const StationStage: FC<{ joinUrl: string }> = ({ joinUrl }) => {
       >
         <pre>{JSON.stringify(players, null, 2)}</pre>
       </div>
-    </PlayersContext.Provider>
+    </>
   );
 };
 

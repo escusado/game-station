@@ -1,5 +1,6 @@
 import { ThreeElements, useFrame } from "@react-three/fiber";
-import { FC, useRef, useState } from "react";
+import { FC, useRef, useState, useCallback } from "react";
+import * as THREE from "three";
 
 import AmbulanceModel from "../../models_build/ambulance";
 import FiretruckModel from "../../models_build/firetruck";
@@ -11,6 +12,7 @@ import SuvModel from "../../models_build/suv";
 import TaxiModel from "../../models_build/taxi";
 import SailBoatAModel from "../../models_build/boatsaila";
 import SailBoatBModel from "../../models_build/boatsailb";
+
 const VEHICLE_MODELS = [
   AmbulanceModel,
   FiretruckModel,
@@ -23,11 +25,12 @@ const VEHICLE_MODELS = [
   SailBoatAModel,
   SailBoatBModel,
 ];
+
 const getRandomVehicleModel = () => {
   return VEHICLE_MODELS[Math.floor(Math.random() * VEHICLE_MODELS.length)];
 };
 
-const SPAWN_RATE_MS = 5000;
+const SPAWN_RATE_MS = 10000;
 const CAR_SPEED = 0.002; // Adjust the speed of the cars
 const DESPAWN_DISTANCE = 10; // Distance at which cars are removed
 const SPAWN_POSITION_X = -1; // Starting position for new cars
@@ -39,13 +42,41 @@ interface Vehicle {
   speed: number;
 }
 
+// Vehicle component with ref for direct position updates
+const VehicleInstance: FC<{
+  vehicle: Vehicle;
+  onUpdate: (id: number, newX: number) => void;
+}> = ({ vehicle, onUpdate }) => {
+  const meshRef = useRef<THREE.Group>(null);
+  const { ModelComponent, position, id, speed } = vehicle;
+
+  useFrame(() => {
+    if (meshRef.current) {
+      meshRef.current.position.x += speed;
+      onUpdate(id, meshRef.current.position.x);
+    }
+  });
+
+  return (
+    <group ref={meshRef} position={position}>
+      <ModelComponent scale={[0.4, 0.4, 0.4]} rotation={[0, Math.PI / 2, 0]} />
+    </group>
+  );
+};
+
 // Instance one random model every SPAWN_RATE_MS increasing the position on the x axis
 const Traffic: FC<ThreeElements["object3D"]> = (props) => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const vehicleIdRef = useRef(0);
   const lastSpawnTimeRef = useRef(0);
+  const vehiclePositionsRef = useRef<Map<number, number>>(new Map());
 
-  // Update vehicle positions and handle spawning/despawning
+  // Callback to update vehicle positions without causing re-renders
+  const handleVehicleUpdate = useCallback((id: number, newX: number) => {
+    vehiclePositionsRef.current.set(id, newX);
+  }, []);
+
+  // Handle spawning and cleanup in a separate frame loop
   useFrame((state) => {
     const currentTime = state.clock.elapsedTime * 1000;
 
@@ -65,34 +96,35 @@ const Traffic: FC<ThreeElements["object3D"]> = (props) => {
       lastSpawnTimeRef.current = currentTime;
     }
 
-    // Update vehicle positions and remove vehicles that are too far
-    setVehicles((prev) =>
-      prev
-        .map((v) => ({
-          ...v,
-          position: [v.position[0] + v.speed, v.position[1], v.position[2]] as [
-            number,
-            number,
-            number,
-          ],
-        }))
-        .filter((vehicle) => vehicle.position[0] < DESPAWN_DISTANCE),
-    );
+    // Clean up vehicles that are too far away
+    const positionsMap = vehiclePositionsRef.current;
+    const vehiclesToRemove: number[] = [];
+
+    positionsMap.forEach((x, id) => {
+      if (x > DESPAWN_DISTANCE) {
+        vehiclesToRemove.push(id);
+      }
+    });
+
+    if (vehiclesToRemove.length > 0) {
+      setVehicles((prev) => {
+        const filtered = prev.filter((v) => !vehiclesToRemove.includes(v.id));
+        // Clean up position tracking
+        vehiclesToRemove.forEach((id) => positionsMap.delete(id));
+        return filtered;
+      });
+    }
   });
 
   return (
     <object3D {...props}>
-      {vehicles.map((vehicle) => {
-        const ModelComponent = vehicle.ModelComponent;
-        return (
-          <ModelComponent
-            key={vehicle.id}
-            position={vehicle.position}
-            scale={[0.4, 0.4, 0.4]}
-            rotation={[0, Math.PI / 2, 0]}
-          />
-        );
-      })}
+      {vehicles.map((vehicle) => (
+        <VehicleInstance
+          key={vehicle.id}
+          vehicle={vehicle}
+          onUpdate={handleVehicleUpdate}
+        />
+      ))}
     </object3D>
   );
 };

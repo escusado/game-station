@@ -1,43 +1,37 @@
-import React, { useEffect } from "react";
-import { ThreeElements } from "@react-three/fiber";
+import React, { useRef } from "react";
+import { ThreeElements, useFrame } from "@react-three/fiber";
+import DurectionModel from "../../models_build/direction";
 import FrogModel from "../../models_build/frog";
-import { Player } from "./Game";
-import { RigidBody } from "@react-three/rapier";
+
+import * as THREE from "three";
+import { usePlayersStore } from "../game/[userType]/StationStage";
+import { emptyPlayerInputs, Player } from "./Game";
+import { degToRad } from "three/src/math/MathUtils.js";
 
 type PlayerProps = ThreeElements["object3D"] & {
-  player: Player;
+  playerIndex: number;
 };
 
-const FrogPlayer: React.FC<PlayerProps> = ({
-  position,
-  player: { id, inputs },
-}) => {
-  // const [currentPosition, setCurrentPosition] = useState(position);
-  // const colliderRef = useRef<typeof RigidBody>(null);
+const FrogPlayer: React.FC<PlayerProps> = ({ position, playerIndex }) => {
+  const directionModelRef = useRef<ThreeElements["object3D"]>(null);
 
-  useEffect(() => {
-    console.log(`Player ${id} initialized at position`, position);
-  }, [position]);
+  useFrame(() => {
+    const player: Player = usePlayersStore.getState().players[playerIndex];
+    if (!player.inputs) return;
+    const {
+      gyroStatus: { alpha },
+    } = player.inputs || emptyPlayerInputs;
 
-  useEffect(() => {
-    if (inputs) {
-      console.log("🧀>>> inputs", inputs);
+    if (directionModelRef.current && directionModelRef.current!.rotation) {
+      (directionModelRef.current.rotation as THREE.Euler).y = degToRad(alpha);
     }
-  }, [inputs]);
+  });
 
   return (
-    <object3D position={position}>
-      {/* <DirectionModel
-        rotation={[
-          0,
-          Array.isArray(props.rotation) ? props.rotation[1] ?? 0 : 0,
-          0,
-        ]}
-      /> */}
-      <RigidBody colliders={"hull"} type="kinematicPosition" gravityScale={0}>
-        <FrogModel scale={[0.3, 0.3, 0.3]} rotation={[0, Math.PI, 0]} />
-      </RigidBody>
-    </object3D>
+    <group position={position}>
+      <DurectionModel ref={directionModelRef} rotation={[0, 0, 0]} />
+      <FrogModel scale={[0.3, 0.3, 0.3]} rotation={[0, Math.PI, 0]} />
+    </group>
   );
 };
 

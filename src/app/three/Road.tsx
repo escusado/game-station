@@ -1,15 +1,9 @@
-import { FC, useState } from "react";
-import { ThreeElements, useFrame } from "@react-three/fiber";
+import { FC } from "react";
+import { ThreeElements } from "@react-three/fiber";
 import RoadTile from "./RoadTile";
 import Traffic from "./Traffic";
 
 const Road: FC<ThreeElements["object3D"] & { stageSize: number }> = (props) => {
-  const [hazardsPosition, setHazardsPosition] = useState(10);
-
-  useFrame(() => {
-    setHazardsPosition(hazardsPosition - 0.005); // Adjust the 0.05 for speed
-  });
-
   return (
     <object3D {...props}>
       <mesh position={[0, 0.5, 0]} rotation={[0, 0, -Math.PI / 2]}>

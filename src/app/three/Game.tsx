@@ -13,10 +13,6 @@ export type PlayerInputs = {
   gyroStatus: { alpha: number; beta: number; gamma: number };
 };
 
-type GameProps = {
-  players: Player[];
-};
-
 export const emptyPlayerInputs: PlayerInputs = {
   accelerometerStatus: { x: 0, y: 0, z: 0 },
   gyroStatus: { alpha: 0, beta: 0, gamma: 0 },
@@ -27,17 +23,22 @@ export type Player = {
   inputs?: PlayerInputs;
 };
 
-const Game: React.FC<GameProps> = () => {
+const Game: React.FC = () => {
   return (
     <>
-      <Canvas shadows style={{ height: "100%", width: "100%" }}>
+      <Canvas
+        shadows
+        style={{ height: "100%", width: "100%" }}
+        dpr={[1, 2]} // Limit pixel ratio for better performance
+        performance={{ min: 0.5 }} // Enable performance regression
+      >
         <PerspectiveCamera
           makeDefault
           position={[-6, 10, -15]}
           rotation={[-Math.PI / 4, 0, 0]}
           fov={75}
         />
-        <OrbitControls />
+        <OrbitControls enableDamping dampingFactor={0.05} />
         <ambientLight intensity={1} />
         <directionalLight intensity={1.5} position={[5, 10, 7.5]} castShadow />
 

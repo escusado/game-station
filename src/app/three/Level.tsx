@@ -1,14 +1,10 @@
-import { useContext, type FC } from "react";
+import { type FC } from "react";
 import Terrain from "./Terrain";
 import Road from "./Road";
 import { Physics } from "@react-three/rapier";
-import { PlayersContext } from "../game/[userType]/StationStage";
+import { usePlayersStore } from "../game/[userType]/StationStage";
 import FrogPlayer from "./FrogPlayer";
 import GateModel from "../../models_build/gate";
-
-type LevelProps = {
-  className?: string;
-};
 
 export const playerPositions: [number, number, number][] = [
   [-4, 0, 4.5],
@@ -18,20 +14,20 @@ export const playerPositions: [number, number, number][] = [
 ];
 
 const roadLength = 8;
-const roadCount = 9;
+const roadCount = 5;
 
-const Level: FC<LevelProps> = () => {
-  const players = useContext(PlayersContext);
-
+const Level: FC = () => {
   const stageSize = roadLength + 2; // road padding (+2) to allow time for the player to see the cars
+  const playersCount = usePlayersStore((state) => state.players.length);
+
   return (
     <Physics debug>
       <Terrain stageSize={stageSize} roadCount={roadCount} />
       <object3D position={[-(stageSize / 2 - 1), 0, -roadCount]}>
-        {players.map((player, index) => (
+        {Array.from({ length: playersCount }).map((_, index) => (
           <FrogPlayer
-            key={player.id}
-            player={player}
+            key={`player-${index}`}
+            playerIndex={index}
             position={[index * 2, 0, 0]}
           />
         ))}
