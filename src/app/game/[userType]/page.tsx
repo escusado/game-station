@@ -11,7 +11,7 @@ import StationStage from "./StationStage";
 import { FROG_GAME_ROOM_NAME } from "@/app/three/Game";
 
 const baseUrl = window.location.origin;
-const playerPathTemplate = "game/player?roomName={ROOM_NAME}";
+const playerPathTemplate = "/game/player?roomName={ROOM_NAME}";
 
 export default function Page() {
   const { userType } = useParams();
